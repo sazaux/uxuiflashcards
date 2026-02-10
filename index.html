@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Práctica de Entrevistas UX/UI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    // Simple storage wrapper for localStorage
+    const storage = {
+      get: (key) => {
+        try {
+          const val = localStorage.getItem(key);
+          return val ? JSON.parse(val) : null;
+        } catch { return null; }
+      },
+      set: (key, val) => {
+        try {
+          localStorage.setItem(key, JSON.stringify(val));
+          return true;
+        } catch { return false; }
+      }
+    };
+
+    const defaultQuestions = [
+      { es: "Cuéntame sobre ti / Preséntate", en: "Tell me about yourself / Introduce yourself" },
+      { es: "¿Qué buscas en tu próximo rol?", en: "What are you looking for in your next role?" },
+      { es: "¿Cómo te gustaría seguir tu carrera?", en: "How would you like to continue your career?" },
+      { es: "¿Por qué deberíamos contratarte?", en: "Why should we hire you?" },
+      { es: "¿Cuáles son tus fortalezas y debilidades?", en: "What are your strengths and weaknesses?" },
+      { es: "Describe tu proceso de diseño", en: "Describe your design process" },
+      { es: "¿Cómo usas AI en tu trabajo?", en: "How do you use AI at work?" },
+      { es: "Cuéntame sobre un problema que resolviste. ¿Cuál era el problema y cómo lo solucionaste?", en: "Tell me about a problem you solved. What was the problem and how did you solve it?" },
+      { es: "¿Qué es buena UI para ti?", en: "What is good UI to you?" },
+      { es: "¿Qué te gusta más y qué te gusta menos hacer en tu trabajo?", en: "What do you like most and least in your work?" },
+      { es: "Cuéntame sobre un proyecto del que estés orgullosa. ¿Por qué?", en: "Tell me about a project you're proud of. Why?" },
+      { es: "¿De qué se quejaría y qué halagaría tu líder actual de ti?", en: "What would your current leader complain about and praise about you?" },
+      { es: "¿Cómo organizas grandes volúmenes de información?", en: "How do you organize large volumes of information?" },
+      { es: "Cuéntame sobre cuando entregaste resultados a pesar de un entorno o contexto desafiante", en: "Tell me about a time when you delivered results despite a challenging environment or context" },
+      { es: "Cuéntame sobre una situación incómoda que hayas enfrentado", en: "Tell me about an uncomfortable situation you faced" },
+      { es: "¿En qué parte de tu proceso vas más rápido y en cuál más lento?", en: "In which part of your process do you go faster and in which slower?" },
+      { es: "¿Cómo aseguras que tus diseños sean accesibles?", en: "How do you make sure your designs are accessible?" },
+      { es: "¿Qué proyectos o empresas admiras?", en: "What projects or companies do you admire?" },
+      { es: "¿Cuándo intentas resolver un problema solo vs. involucrar a otros del equipo?", en: "When do you try to solve a problem on your own vs. involve others on your team?" },
+      { es: "¿Hay algún proyecto donde hayas realizado una propuesta?", en: "Is there a project where you made a proposal?" },
+      { es: "¿Algún problema que hayas tenido con un compañero? ¿Cómo se resolvió?", en: "Any problem you've had with a colleague? How was it resolved?" },
+      { es: "¿Alguien con quien hayas chocado o tengas diferencias en la forma de trabajar?", en: "Someone you've clashed with or have differences in working style?" },
+      { es: "¿Algo valioso que hayas aprendido en tu trabajo actual o anterior?", en: "Something valuable you've learned in your current or previous job?" },
+      { es: "¿Algún ejemplo donde hayas ayudado a tus compañeros?", en: "Any example where you helped your colleagues?" },
+      { es: "Una experiencia buena con diseño UX/UI", en: "A good experience with UX/UI design" },
+      { es: "Una experiencia mala con diseño UX/UI", en: "A bad experience with UX/UI design" },
+      { es: "¿Algo que te gustaría fortalecer?", en: "Something you'd like to strengthen?" },
+      { es: "¿Algo que creas que haces bien?", en: "Something you think you do well?" },
+      { es: "¿Cómo es tu comunicación con desarrollo?", en: "How is your communication with development?" },
+      { es: "¿Algo que te hayan dicho en feedback que no esperabas?", en: "Something you were told in feedback that you didn't expect?" },
+      { es: "Cuéntame sobre un design system complejo en el que hayas trabajado", en: "Tell me about a complex design system you've worked on" },
+      { es: "¿Qué es lo que más te importa de una empresa?", en: "What matters most to you about a company?" },
+      { es: "Si presentas un diseño del que estás segura y te lo rechazan, ¿qué haces?", en: "If you present a design you're confident about and it's rejected, what do you do?" },
+      { es: "¿Qué hace a un design system excelente en vez de solo bueno?", en: "What makes a great design system instead of just good?" },
+      { es: "¿En qué empresa te gustó más trabajar? ¿Por qué?", en: "Which company did you most enjoy working at? Why?" },
+      { es: "Cuéntame sobre una experiencia de la que aprendiste en tu rol anterior", en: "Tell me about an experience you learned from in your past role" },
+      { es: "¿Cómo mides el éxito de un proyecto? ¿Qué métricas usas?", en: "How do you measure the success of a project? What metrics do you use?" },
+      { es: "Da un ejemplo de una situación difícil en el proceso de diseño y cómo la manejaste", en: "Give an example of a difficult situation in the design process and how you managed it" },
+      { es: "¿Cuál es tu filosofía como diseñadora?", en: "What is your philosophy as a designer?" },
+      { es: "¿Cómo te mantienes al día con las últimas tendencias y mejores prácticas en diseño?", en: "How do you stay up to date with the latest trends and best practices in design?" },
+      { es: "¿Has estudiado o aprendido algo nuevo relacionado con diseño en el último año?", en: "Have you studied or learned anything new related to design in the last year?" }
+    ];
+
+    const t = {
+      es: { title: "Práctica de Entrevistas UX/UI", subtitle: "Preguntas comunes para Product Designers", next: "Siguiente", back: "Atrás", shuffle: "Mezclar", counter: "de", copied: "Copiado", manageQuestions: "Gestionar Preguntas", save: "Guardar", cancel: "Cancelar", delete: "Eliminar", questionEs: "Pregunta en Español", questionEn: "Pregunta en Inglés", editQuestion: "Editar Pregunta", newQuestion: "Nueva Pregunta", addQuestion: "Agregar Pregunta", exportText: "Exportar como Texto", exportJson: "Exportar JSON", adminMode: "Modo Administrador", enterPassword: "Ingresa contraseña", setPassword: "Establecer contraseña", unlock: "Desbloquear", createPassword: "Crea una contraseña para administrar las preguntas:", analytics: "Analytics", gaSetupDesc: "Ingresa tu ID de medición de Google Analytics (formato: G-XXXXXXXXXX)", gaPlaceholder: "G-XXXXXXXXXX", gaInstructions: "Para obtener tu ID: Google Analytics → Admin → Flujos de datos → ID de medición", gaSave: "Guardar ID", gaRemove: "Quitar Analytics", gaActive: "Analytics activo" },
+      en: { title: "UX/UI Interview Practice", subtitle: "Common questions for Product Designers", next: "Next", back: "Back", shuffle: "Shuffle", counter: "of", copied: "Copied", manageQuestions: "Manage Questions", save: "Save", cancel: "Cancel", delete: "Delete", questionEs: "Question in Spanish", questionEn: "Question in English", editQuestion: "Edit Question", newQuestion: "New Question", addQuestion: "Add Question", exportText: "Export as Text", exportJson: "Export JSON", adminMode: "Admin Mode", enterPassword: "Enter password", setPassword: "Set Password", unlock: "Unlock", createPassword: "Create a password to manage the questions:", analytics: "Analytics", gaSetupDesc: "Enter your Google Analytics Measurement ID (format: G-XXXXXXXXXX)", gaPlaceholder: "G-XXXXXXXXXX", gaInstructions: "To get your ID: Google Analytics → Admin → Data Streams → Measurement ID", gaSave: "Save ID", gaRemove: "Remove Analytics", gaActive: "Analytics active" }
+    };
+
+    class App {
+      constructor() {
+        this.state = {
+          lang: 'es',
+          idx: 0,
+          shuffled: [],
+          questions: [],
+          darkMode: localStorage.getItem('darkMode') === 'true',
+          showEditor: false,
+          showPwd: false,
+          showCopied: false,
+          showAnalytics: false,
+          isAdmin: false,
+          pwd: '',
+          adminPwd: '',
+          gaId: '',
+          editIdx: null,
+          newEs: '',
+          newEn: ''
+        };
+        this.load();
+        this.render();
+      }
+
+      load() {
+        const data = storage.get('interview_data');
+        if (data) {
+          this.state.questions = data.questions || defaultQuestions;
+          this.state.adminPwd = data.password || '';
+          this.state.gaId = data.gaId || '';
+        } else {
+          this.state.questions = defaultQuestions;
+        }
+        this.shuffle();
+        if (this.state.gaId && this.state.gaId.startsWith('G-')) this.loadGA();
+      }
+
+      loadGA() {
+        const s = document.createElement('script');
+        s.src = `https://www.googletagmanager.com/gtag/js?id=${this.state.gaId}`;
+        s.async = true;
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', this.state.gaId);
+      }
+
+      track(event, params = {}) {
+        if (window.gtag && this.state.gaId) window.gtag('event', event, params);
+      }
+
+      save() {
+        storage.set('interview_data', {
+          questions: this.state.questions,
+          password: this.state.adminPwd,
+          gaId: this.state.gaId,
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      shuffle() {
+        const arr = Array.from({ length: this.state.questions.length }, (_, i) => i);
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        this.state.shuffled = arr;
+        this.state.idx = 0;
+      }
+
+      render() {
+        const s = this.state;
+        const tr = t[s.lang];
+        const dark = s.darkMode;
+        const bg = dark ? 'from-slate-900 to-slate-800' : 'from-slate-50 to-slate-100';
+        const card = dark ? 'bg-slate-800 text-slate-100' : 'bg-white text-slate-700';
+        const txt1 = dark ? 'text-slate-100' : 'text-slate-800';
+        const txt2 = dark ? 'text-slate-400' : 'text-slate-500';
+        const btn = dark ? 'bg-slate-700 text-slate-100 hover:bg-slate-600' : 'bg-white text-slate-700 hover:shadow-md';
+        const inp = dark ? 'bg-slate-700 border-slate-600 text-slate-100' : 'bg-white border-slate-200 text-slate-800';
+
+        if (s.showPwd) {
+          document.getElementById('app').innerHTML = `
+            <div class="min-h-screen bg-gradient-to-br ${bg} flex items-center justify-center p-4">
+              <div class="${card} rounded-2xl shadow-lg p-8 max-w-md w-full">
+                <h2 class="text-2xl font-light ${txt1} mb-6">${s.adminPwd ? tr.adminMode : tr.setPassword}</h2>
+                <p class="${txt2} mb-4">${tr.createPassword}</p>
+                <input type="password" id="pwd" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 mb-4 ${inp}" placeholder="••••••••">
+                <div class="flex gap-2">
+                  <button onclick="app.handlePwd()" class="flex-1 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900">${tr.unlock}</button>
+                  <button onclick="app.state.showPwd=false;app.render()" class="px-4 py-2 rounded-lg ${dark ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-700'}">${tr.cancel}</button>
+                </div>
+              </div>
+            </div>`;
+          return;
+        }
+
+        if (s.showEditor) {
+          let qList = '';
+          s.questions.forEach((q, i) => {
+            qList += `
+              <div class="${card} rounded-lg shadow p-4 flex justify-between items-start gap-4 mb-3">
+                <div class="flex-1">
+                  <div class="text-xs ${txt2} mb-1">#${i+1}</div>
+                  <p class="${txt1} mb-1">${q.es}</p>
+                  <p class="${txt2} text-sm">${q.en}</p>
+                </div>
+                ${s.isAdmin ? `
+                  <div class="flex gap-2">
+                    <button onclick="app.editQ(${i})" class="p-2 rounded-lg ${dark ? 'text-slate-400 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-100'}">✏️</button>
+                    <button onclick="app.deleteQ(${i})" class="p-2 rounded-lg ${dark ? 'text-red-400' : 'text-red-600'}">🗑️</button>
+                  </div>` : ''}
+              </div>`;
+          });
+
+          document.getElementById('app').innerHTML = `
+            <div class="min-h-screen bg-gradient-to-br ${bg} p-4">
+              <div class="max-w-4xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                  <h1 class="text-2xl font-light ${txt1}">${tr.manageQuestions}</h1>
+                  <button onclick="app.state.showEditor=false;app.render()" class="p-2 rounded-lg shadow-sm ${btn}">✕</button>
+                </div>
+                ${s.isAdmin ? `
+                  <div class="${card} rounded-2xl shadow-lg p-6 mb-6">
+                    <h2 class="text-lg font-medium ${txt1} mb-4">${s.editIdx !== null ? tr.editQuestion : tr.newQuestion}</h2>
+                    <div class="space-y-4">
+                      <div>
+                        <label class="block text-sm ${txt2} mb-2">${tr.questionEs}</label>
+                        <input type="text" id="newEs" value="${s.newEs}" class="w-full px-4 py-2 border rounded-lg ${inp}">
+                      </div>
+                      <div>
+                        <label class="block text-sm ${txt2} mb-2">${tr.questionEn}</label>
+                        <input type="text" id="newEn" value="${s.newEn}" class="w-full px-4 py-2 border rounded-lg ${inp}">
+                      </div>
+                      <div class="flex gap-2">
+                        <button onclick="app.saveQ()" class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900">${tr.save}</button>
+                        ${s.editIdx !== null ? `<button onclick="app.cancelEdit()" class="px-4 py-2 rounded-lg ${dark ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-700'}">${tr.cancel}</button>` : ''}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="${card} rounded-2xl shadow-lg p-6 mb-6">
+                    <h2 class="text-lg font-medium ${txt1} mb-4">Exportar</h2>
+                    <div class="flex gap-3">
+                      <button onclick="app.exportTxt()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">📄 ${tr.exportText}</button>
+                      <button onclick="app.exportJson()" class="px-4 py-2 bg-green-600 text-white rounded-lg">💾 ${tr.exportJson}</button>
+                    </div>
+                  </div>
+                  <div class="${card} rounded-2xl shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                      <h2 class="text-lg font-medium ${txt1}">${tr.analytics}</h2>
+                      ${s.gaId ? `<span class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded-full">${tr.gaActive}</span>` : ''}
+                    </div>
+                    ${s.showAnalytics ? `
+                      <div class="space-y-4">
+                        <p class="text-sm ${txt2}">${tr.gaSetupDesc}</p>
+                        <input type="text" id="gaId" value="${s.gaId}" class="w-full px-4 py-2 border rounded-lg ${inp}" placeholder="${tr.gaPlaceholder}">
+                        <p class="text-xs ${txt2}">${tr.gaInstructions}</p>
+                        <div class="flex gap-2">
+                          <button onclick="app.saveGA()" class="px-4 py-2 bg-slate-800 text-white rounded-lg">${tr.gaSave}</button>
+                          ${s.gaId ? `<button onclick="app.removeGA()" class="px-4 py-2 bg-red-600 text-white rounded-lg">${tr.gaRemove}</button>` : ''}
+                          <button onclick="app.state.showAnalytics=false;app.render()" class="px-4 py-2 rounded-lg ${dark ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-700'}">${tr.cancel}</button>
+                        </div>
+                      </div>
+                    ` : `<button onclick="app.state.showAnalytics=true;app.render()" class="w-full px-4 py-2 rounded-lg ${dark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'}">${s.gaId ? 'Editar Analytics' : 'Configurar Analytics'}</button>`}
+                  </div>
+                ` : ''}
+                <div>${qList}</div>
+              </div>
+            </div>`;
+          return;
+        }
+
+        const q = s.questions[s.shuffled[s.idx]];
+        document.getElementById('app').innerHTML = `
+          <div class="min-h-screen bg-gradient-to-br ${bg} flex items-center justify-center p-4">
+            <div class="w-full max-w-2xl">
+              <div class="mb-8">
+                <h1 class="text-2xl font-light ${txt1} mb-2">${tr.title}</h1>
+                <p class="text-sm ${txt2} mb-4">${tr.subtitle}</p>
+                <div class="flex flex-wrap gap-2 items-center">
+                  <div class="relative">
+                    <button onclick="app.share()" class="p-2 rounded-lg shadow-sm transition-shadow ${btn}">📤</button>
+                    ${s.showCopied ? `<div class="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-10">✓ ${tr.copied}</div>` : ''}
+                  </div>
+                  <button onclick="app.shuffleCards()" class="p-2 rounded-lg shadow-sm ${btn}">🔀</button>
+                  <button onclick="app.toggleLang()" class="p-2 rounded-lg shadow-sm ${btn} flex items-center gap-2">🌐 <span class="text-sm font-medium uppercase">${s.lang}</span></button>
+                  <button onclick="app.toggleDark()" class="p-2 rounded-lg shadow-sm ${btn}">${dark ? '☀️' : '🌙'}</button>
+                  <button onclick="app.openSettings()" class="p-2 rounded-lg shadow-sm ${btn} ml-auto">⚙️</button>
+                </div>
+              </div>
+              <div class="${card} rounded-2xl shadow-lg p-8 md:p-12 min-h-[280px] flex flex-col justify-center mb-6">
+                <p class="text-xl md:text-2xl ${txt1} text-center leading-relaxed">${q ? q[s.lang] : ''}</p>
+              </div>
+              <div class="text-center mb-6 text-sm ${txt2}">${s.idx + 1} ${tr.counter} ${s.shuffled.length}</div>
+              <div class="flex justify-center gap-4">
+                <button onclick="app.prev()" ${s.idx === 0 ? 'disabled' : ''} class="flex items-center gap-2 px-6 py-3 rounded-lg transition-all ${s.idx === 0 ? (dark ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-100 text-slate-400 cursor-not-allowed') : (dark ? 'bg-slate-700 text-slate-100 shadow-md hover:shadow-lg' : 'bg-white shadow-md hover:shadow-lg text-slate-700')}">← <span class="font-medium">${tr.back}</span></button>
+                <button onclick="app.next()" ${s.idx === s.shuffled.length - 1 ? 'disabled' : ''} class="flex items-center gap-2 px-6 py-3 rounded-lg transition-all ${s.idx === s.shuffled.length - 1 ? (dark ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-100 text-slate-400 cursor-not-allowed') : 'bg-slate-800 text-white shadow-md hover:shadow-lg hover:bg-slate-900'}"><span class="font-medium">${tr.next}</span> →</button>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      next() {
+        if (this.state.idx < this.state.shuffled.length - 1) {
+          this.state.idx++;
+          this.track('next_card', { question_number: this.state.idx + 1, language: this.state.lang });
+          this.render();
+        }
+      }
+
+      prev() {
+        if (this.state.idx > 0) {
+          this.state.idx--;
+          this.track('back_card', { question_number: this.state.idx + 1, language: this.state.lang });
+          this.render();
+        }
+      }
+
+      shuffleCards() {
+        this.shuffle();
+        this.track('shuffle_cards', { total_questions: this.state.questions.length });
+        this.render();
+      }
+
+      toggleLang() {
+        this.state.lang = this.state.lang === 'es' ? 'en' : 'es';
+        this.track('change_language', { new_language: this.state.lang });
+        this.render();
+      }
+
+      toggleDark() {
+        this.state.darkMode = !this.state.darkMode;
+        localStorage.setItem('darkMode', this.state.darkMode);
+        this.track('toggle_dark_mode', { dark_mode: this.state.darkMode });
+        this.render();
+      }
+
+      share() {
+        navigator.clipboard.writeText(window.location.href);
+        this.state.showCopied = true;
+        this.track('link_copied_direct');
+        this.render();
+        setTimeout(() => {
+          this.state.showCopied = false;
+          this.render();
+        }, 2000);
+      }
+
+      openSettings() {
+        if (this.state.isAdmin) {
+          this.state.showEditor = true;
+        } else {
+          this.state.showPwd = true;
+        }
+        this.render();
+      }
+
+      handlePwd() {
+        const val = document.getElementById('pwd').value;
+        if (!this.state.adminPwd) {
+          this.state.adminPwd = val;
+          this.state.isAdmin = true;
+          this.save();
+          this.track('admin_password_set');
+        } else if (val === this.state.adminPwd) {
+          this.state.isAdmin = true;
+          this.track('admin_unlock');
+        } else {
+          alert('Contraseña incorrecta');
+          this.track('admin_unlock_failed');
+          return;
+        }
+        this.state.showPwd = false;
+        this.state.showEditor = true;
+        this.render();
+      }
+
+      editQ(i) {
+        this.state.editIdx = i;
+        this.state.newEs = this.state.questions[i].es;
+        this.state.newEn = this.state.questions[i].en;
+        this.track('question_edit_start', { question_number: i + 1 });
+        this.render();
+      }
+
+      saveQ() {
+        const es = document.getElementById('newEs').value;
+        const en = document.getElementById('newEn').value;
+        if (!es.trim() || !en.trim()) return;
+        
+        if (this.state.editIdx !== null) {
+          this.state.questions[this.state.editIdx] = { es, en };
+          this.track('question_edited', { question_number: this.state.editIdx + 1 });
+        } else {
+          this.state.questions.push({ es, en });
+          this.track('question_added', { total_questions: this.state.questions.length });
+        }
+        this.state.editIdx = null;
+        this.state.newEs = '';
+        this.state.newEn = '';
+        this.save();
+        this.shuffle();
+        this.render();
+      }
+
+      deleteQ(i) {
+        if (confirm('¿Estás segura de que quieres eliminar esta pregunta?')) {
+          this.state.questions.splice(i, 1);
+          this.save();
+          this.shuffle();
+          this.track('question_deleted', { question_number: i + 1, total_remaining: this.state.questions.length });
+          this.render();
+        }
+      }
+
+      cancelEdit() {
+        this.state.editIdx = null;
+        this.state.newEs = '';
+        this.state.newEn = '';
+        this.render();
+      }
+
+      exportTxt() {
+        let txt = 'PREGUNTAS DE ENTREVISTA UX/UI / UX/UI INTERVIEW QUESTIONS\n' + '='.repeat(70) + '\n\n';
+        this.state.questions.forEach((q, i) => {
+          txt += `${i+1}.\n🇪🇸 ${q.es}\n🇬🇧 ${q.en}\n\n`;
+        });
+        const blob = new Blob([txt], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'preguntas-entrevista-uxui.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.track('export_text', { total_questions: this.state.questions.length });
+      }
+
+      exportJson() {
+        const blob = new Blob([JSON.stringify(this.state.questions, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'preguntas-entrevista-uxui.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.track('export_json', { total_questions: this.state.questions.length });
+      }
+
+      saveGA() {
+        const val = document.getElementById('gaId').value;
+        if (val.startsWith('G-')) {
+          this.state.gaId = val;
+          this.save();
+          this.loadGA();
+          this.state.showAnalytics = false;
+          this.track('analytics_configured');
+          this.render();
+        } else {
+          alert('El ID debe comenzar con G-');
+        }
+      }
+
+      removeGA() {
+        this.state.gaId = '';
+        this.save();
+        this.state.showAnalytics = false;
+        this.render();
+      }
+    }
+
+    const app = new App();
+  </script>
